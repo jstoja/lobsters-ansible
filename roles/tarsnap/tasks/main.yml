@@ -1,5 +1,7 @@
 - include: apt.yml
-  when: "'{{ family }}' == 'debian'"
+  when: ansible_os_family.id == 'Debian'
+#- include: yum.yml
+#  when: ansible_os_family.id == 'RedHat'
 
 - name: copy up logrotate and tarsnap configs
   copy: >

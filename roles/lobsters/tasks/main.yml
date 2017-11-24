@@ -1,7 +1,7 @@
 - include: apt.yml
-  when: "'{{ family }}' == 'debian'"
+  when: ansible_os_family.id == 'Debian'
 - include: yum.yml
-  when: "'{{ family }}' == 'redhat'"
+  when: ansible_os_family.id == 'RedHat'
 
 - name: groupadd lobsters
   tags: user
