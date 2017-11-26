@@ -1,73 +1,76 @@
-- include: apt.yml
-  when: ansible_os_family.id == 'Debian'
-- include: yum.yml
-  when: ansible_os_family.id == 'RedHat'
+---
+
+- include_tasks: apt.yml
+  when: ansible_os_family == 'Debian'
+- include_tasks: yum.yml
+  when: ansible_os_family == 'RedHat'
 
 - name: groupadd lobsters
   tags: user
-  group: name=lobsters gid=1024 state=present
+  group:
+    name: lobsters
+    gid: 1024
+    state: present
 
 - name: useradd lobsters
   tags: user
-  user: >
-    name=lobsters
-    comment='lobste.rs'
-    group=lobsters
-    home='/srv/lobste.rs'
-    state=present
-    uid=1024
+  user:
+    name: lobsters
+    comment: 'lobste.rs'
+    group: lobsters
+    home: '/srv/lobste.rs'
+    state: present
+    uid: 1024
 
-- name: mkdir ~lobste.rs/.%
-  file: >
-    state=directory
-    path="/srv/lobste.rs/.{{ item.file }}"
-    owner=lobsters
-    group=lobsters
-    mode="{{ item.mode }}"
-  with_items:
-  - { file: 'ssh', mode: '02700' }
+- name: add known_host for trusted git pull
+  copy:
+    src: ssh/known_hosts
+    dest: /etc/ssh/ssh_known_hosts
+    owner: root
+    group: root
+    mode: 0644
 
-- name: cp % ~lobsters/.%
-  copy: >
-    src="{{ item.file }}"
-    dest="/srv/lobste.rs/.{{ item.file }}"
-    owner=lobsters
-    group=lobsters
-    mode={{ item.mode }}
-  with_items:
-    - { file: 'ssh/known_hosts', mode: '0600' }
-
+# Have to pull as root because of:
+# http://docs.ansible.com/ansible/latest/become.html#becoming-an-unprivileged-user
 - name: git clone lobsters
-  sudo: yes
-  sudo_user: lobsters
-  git: >
-    repo='https://github.com/lobsters/lobsters.git'
-    dest='/srv/lobste.rs/http'
+  git:
+    repo: 'https://github.com/lobsters/lobsters.git'
+    dest: /srv/lobste.rs/http/
+    version: master
+
+- name: set correct rights for lobsters repo
+  file:
+    path: /srv/lobste.rs/http/
+    state: directory
+    owner: lobsters
+    group: lobsters
+    recurse: true
+
 
 - name: copy templates and icons
-  copy: >
-    src="{{ item.file }}"
-    dest="/srv/lobste.rs/http/"
-    owner=lobsters
-    group=lobsters
-    mode={{ item.mode }}
+  copy:
+    src: "{{ item.file }}"
+    dest: "/srv/lobste.rs/http/"
+    owner: lobsters
+    group: lobsters
+    mode: "{{ item.mode }}"
   with_items:
     - { file: 'app', mode: '0600' }
     - { file: 'public', mode: '0644' }
 
 - name: cp cron script
-  copy: >
-    src="sbin/lobsters-cron"
-    dest="/usr/local/sbin/lobsters-cron"
-    owner=root
-    group=root
-    mode='0755'
+  copy:
+    src: "sbin/lobsters-cron"
+    dest: "/usr/local/sbin/lobsters-cron"
+    owner: root
+    group: root
+    mode: '0755'
 
 - name: add crontab entry
   tags: cron
-  cron: >
-    state=present
-    name=lobsters-cron
-    user=lobsters
-    minute="*/5"
-    job=/usr/local/sbin/lobsters-cron
+  cron:
+    state: present
+    name: lobsters-cron
+    user: lobsters
+    minute: "*/5"
+    job: /usr/local/sbin/lobsters-cron

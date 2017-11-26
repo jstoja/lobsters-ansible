@@ -1,5 +1,10 @@
+---
+
 - name: apt-get install lobsters dependencies
-  apt: name={{ item }} state=latest update_cache=yes
+  apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: true
   tags: pkg
   with_items:
     - cmake
@@ -7,7 +12,6 @@
     - gcc
     - git
     - libc-dev
-    - libmysqlclient-dev
     - libsqlite3-dev
     - make
     - mariadb-client
@@ -17,3 +21,17 @@
     - ruby2.3-dev
     - ruby-bundler
     - sqlite3
+
+- name: apt-get install libmysqlclient-dev
+  apt:
+    name: libmysqlclient-dev
+    state: present
+  tags: pkg
+  when: ansible_distribution == 'Ubuntu'
+
+- name: apt-get install default-libmysqlclient-dev
+  apt:
+    name: default-libmysqlclient-dev
+    state: present
+  tags: pkg
+  when: ansible_distribution == 'Debian'

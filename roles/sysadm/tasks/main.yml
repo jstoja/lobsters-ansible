@@ -1,9 +1,11 @@
-- include: apt.yml
-  when: ansible_os_family.id == 'Debian'
-- include: yum.yml
-  when: ansible_os_family.id == 'RedHat'
+---
+
+- include_tasks: apt.yml
+  when: ansible_os_family == 'Debian'
+- include_tasks: yum.yml
+  when: ansible_os_family == 'RedHat'
 
 - name: include sudo supplementary group
   include_vars: "{{ family }}.yml"
-- include: a.yml
-- include: pushcx.yml
+- include_tasks: a.yml
+- include_tasks: pushcx.yml

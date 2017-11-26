@@ -1,7 +1,9 @@
-- include: apt.yml
-  when: ansible_os_family.id == 'Debian'
-- include: yum.yml
-  when: ansible_os_family.id == 'RedHat'
+---
+
+- include_tasks: apt.yml
+  when: ansible_os_family == 'Debian'
+- include_tasks: yum.yml
+  when: ansible_os_family == 'RedHat'
 
 # DKIM
 # ----
@@ -10,23 +12,23 @@
 # $ grep -v -e '^-' dkim.pub | tr -d '\n'
 
 - name: cp /etc/default/opendkim
-  copy: >
-    src={{ item.name }}
-    dest=/{{ item.name }}
-    owner=root
-    group=root
-    mode={{ item.mode }}
+  copy:
+    src: "{{ item.name }}"
+    dest: "/{{ item.name }}"
+    owner: root
+    group: root
+    mode: "{{ item.mode }}"
   with_items:
     - { name: 'etc/default/opendkim', mode: '0644' }
     - { name: 'etc/opendkim.conf',    mode: '0644' }
 
 - name: cp /etc/postfix
-  template: >
-    src=etc/postfix/{{ item.name }}
-    dest=/etc/postfix/{{ item.name }}
-    owner=root
-    group=root
-    mode={{ item.mode }}
+  template:
+    src: "etc/postfix/{{ item.name }}"
+    dest: "/etc/postfix/{{ item.name }}"
+    owner: root
+    group: root
+    mode: "{{ item.mode }}"
   with_items:
     - { name: 'main.cf',   mode: '0644' }
     - { name: 'master.cf', mode: '0644' }

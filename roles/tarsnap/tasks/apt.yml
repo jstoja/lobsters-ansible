@@ -1,10 +1,12 @@
+---
+
 - name: copy up tarsnap key
-  copy: >
-    src="tarsnap-deb-packaging-key.asc"
-    dest="/tmp"
-    owner=root
-    group=root
-    mode="0400"
+  copy:
+    src: tarsnap-deb-packaging-key.asc
+    dest: /tmp
+    owner: root
+    group: root
+    mode: 0400
 
 - name: add tarsnap key
   apt_key:
@@ -15,12 +17,14 @@
   apt_repository:
     repo: "deb http://pkg.tarsnap.com/deb/{{ codename }} ./"
     state: present
-    validate_certs: yes
+    validate_certs: true
 
 - name: apt-get install tarsnap
-  apt: name=tarsnap state=latest update_cache=yes
+  apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: true
   tags: pkg
-
-- name: apt-get install logrotate
-  apt: name=logrotate state=latest update_cache=yes
-  tags: pkg
+  with_items:
+    - tarsnap
+    - logrotate

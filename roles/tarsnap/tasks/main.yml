@@ -1,22 +1,24 @@
-- include: apt.yml
-  when: ansible_os_family.id == 'Debian'
-#- include: yum.yml
-#  when: ansible_os_family.id == 'RedHat'
+---
+
+- include_tasks: apt.yml
+  when: ansible_os_family == 'Debian'
+# - include_tasks: yum.yml
+#   when: ansible_os_family == 'RedHat'
 
 - name: copy up logrotate and tarsnap configs
-  copy: >
-    src="{{ item.file }}"
-    dest="{{ item.dest }}"
-    owner=root
-    group=root
-    mode="0644"
+  copy:
+    src: "{{ item.file }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+    mode: "0644"
   with_items:
-    - { dest: "/etc", file: "logrotate.conf",}
-    - { dest: "/etc", file: "tarsnap.conf" }
-    - { dest: "/etc/logrotate.d", file: "mysql-server" }
-    - { dest: "/etc/logrotate.d", file: "rails" }
-    - { dest: "/etc/logrotate.d", file: "nginx" }
-    - { dest: "/etc/logrotate.d", file: "unicorn" }
+    - {dest: "/etc", file: "logrotate.conf"}
+    - {dest: "/etc", file: "tarsnap.conf"}
+    - {dest: "/etc/logrotate.d", file: "mysql-server"}
+    - {dest: "/etc/logrotate.d", file: "rails"}
+    - {dest: "/etc/logrotate.d", file: "nginx"}
+    - {dest: "/etc/logrotate.d", file: "unicorn"}
 
 - name: remove logrotate package's cron job
   file:
@@ -24,19 +26,19 @@
     state: absent
 
 - name: copy up backup script
-  copy: >
-    src="backup-cron"
-    dest="/usr/local/sbin"
-    owner=lobsters
-    group=lobsters
-    mode="0700"
+  copy:
+    src: "backup-cron"
+    dest: "/usr/local/sbin"
+    owner: lobsters
+    group: lobsters
+    mode: "0700"
 
 - name: add crontab entry
   tags: cron
-  cron: >
-    state=present
-    name=backup-cron
-    user=root
-    minute="0"
-    hour="0"
-    job=/usr/local/sbin/backup-cron
+  cron:
+    state: present
+    name: backup-cron
+    user: root
+    minute: "0"
+    hour: "0"
+    job: /usr/local/sbin/backup-cron
